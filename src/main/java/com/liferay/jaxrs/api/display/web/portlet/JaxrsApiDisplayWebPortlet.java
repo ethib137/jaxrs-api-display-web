@@ -68,10 +68,62 @@ public class JaxrsApiDisplayWebPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
+		String command = "jaxrs:check";
+
 		initCommandSession(renderRequest);
 
 		CommandSession commandSession = _getSessionAttribute(
 			renderRequest, GogoShellWebKeys.COMMAND_SESSION);
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		UnsyncByteArrayOutputStream outputUnsyncByteArrayOutputStream =
+			_getSessionAttribute(
+				renderRequest, GogoShellWebKeys.COMMAND_SESSION_OUTPUT_STREAM);
+		UnsyncByteArrayOutputStream errorUnsyncByteArrayOutputStream =
+			_getSessionAttribute(
+				renderRequest, GogoShellWebKeys.COMMAND_SESSION_ERROR_STREAM);
+		PrintStream outputPrintStream = _getSessionAttribute(
+			renderRequest,
+			GogoShellWebKeys.COMMAND_SESSION_OUTPUT_PRINT_STREAM);
+		PrintStream errorPrintStream = _getSessionAttribute(
+			renderRequest, GogoShellWebKeys.COMMAND_SESSION_ERROR_PRINT_STREAM);
+
+		try {
+			SessionMessages.add(renderRequest, "command", command);
+
+			checkCommand(command, themeDisplay);
+
+			Object result = commandSession.execute(command);
+
+			if (result != null) {
+				outputPrintStream.print(
+					commandSession.format(result, Converter.INSPECT));
+			}
+
+			errorPrintStream.flush();
+			outputPrintStream.flush();
+
+			SessionMessages.add(
+				renderRequest, "commandOutput",
+				outputUnsyncByteArrayOutputStream.toString());
+
+			String errorContent = errorUnsyncByteArrayOutputStream.toString();
+
+			if (Validator.isNotNull(errorContent)) {
+				throw new Exception(errorContent);
+			}
+		}
+		catch (Exception exception) {
+			hideDefaultErrorMessage(renderRequest);
+
+			SessionErrors.add(renderRequest, "gogo", exception);
+		}
+		finally {
+			outputUnsyncByteArrayOutputStream.reset();
+			errorUnsyncByteArrayOutputStream.reset();
+		}
 
 		SessionMessages.add(
 			renderRequest, "prompt", commandSession.get("prompt"));
@@ -83,7 +135,7 @@ public class JaxrsApiDisplayWebPortlet extends MVCPortlet {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		String command = ParamUtil.getString(actionRequest, "command");
+		String command = "jaxrs:check";
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
