@@ -1,0 +1,4 @@
+Bundle-Name: jaxrs-api-display-web
+Bundle-SymbolicName: com.liferay.jaxrs.api.display.web
+Bundle-Version: 1.0.0
+Export-Package: com.liferay.jaxrs.api.display.web.constants
