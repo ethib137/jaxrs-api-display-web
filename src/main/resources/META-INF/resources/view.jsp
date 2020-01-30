@@ -22,7 +22,7 @@ String commandOutput = (String)SessionMessages.get(renderRequest, "commandOutput
 String prompt = (String)SessionMessages.get(renderRequest, "prompt");
 %>
 
-<div class="container-fluid-1280">
+<div class="container-fluid-1280 jaxrs-api-display-web">
 	<%
 	Map<String, Object> data = new HashMap<>();
 
@@ -32,7 +32,7 @@ String prompt = (String)SessionMessages.get(renderRequest, "prompt");
 	<div class="react-component">
 		<react:component
 			data="<%= data %>"
-			module="js/jaxrsApp.es"
+			module="js/jaxrsApp"
 		/>
 	</div>
 </div>
