@@ -32,7 +32,7 @@ String prompt = (String)SessionMessages.get(renderRequest, "prompt");
 	<div class="react-component">
 		<react:component
 			data="<%= data %>"
-			module="js/jaxrsApp"
+			module="js/jaxrsApp.es"
 		/>
 	</div>
 </div>

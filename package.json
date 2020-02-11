@@ -1,5 +1,7 @@
 {
 	"dependencies": {
+		"@clayui/badge": "^3.0.0",
+		"@clayui/form": "^3.3.0",
 		"react": "^16.9.0"
 	},
 	"description": "",
@@ -11,16 +13,11 @@
 			"<rootDir>/test/js/[^/]+\\.js"
 		]
 	},
-	"main": "js/index.js",
+	"main": "js/jaxrsApp.es.js",
 	"name": "jaxrs-web",
 	"private": true,
 	"scripts": {
-		"build": "babel --source-maps -d build/resources/main/META-INF/resources/js src/main/resources/META-INF/resources/js && liferay-npm-bundler",
-		"checkFormat": "liferay-npm-scripts check",
-		"csf": "liferay-npm-scripts fix",
-		"format": "liferay-npm-scripts fix",
-		"test": "env TZ=utc liferay-npm-scripts test",
-		"test:watch": "env TZ=utc liferay-npm-scripts test --watch"
+		"build": "babel --source-maps -d build/resources/main/META-INF/resources/js src/main/resources/META-INF/resources/js && liferay-npm-bundler"
 	},
 	"version": "1.0.0",
 	"devDependencies": {
@@ -30,7 +27,6 @@
 		"@babel/preset-react": "^7.7.4",
 		"liferay-npm-bundler": "^2.16.1",
 		"copy-webpack-plugin": "4.6.0",
-		"liferay-npm-build-support": "^2.16.1",
-		"liferay-npm-scripts": "^19.0.2"
+		"liferay-npm-build-support": "^2.16.1"
 	}
 }
