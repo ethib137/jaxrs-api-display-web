@@ -1,5 +1,6 @@
 import React from 'react';
 
+import ClayAlert from '@clayui/alert';
 import ClayBadge from '@clayui/badge';
 
 import Api from './Api.es';
@@ -170,6 +171,12 @@ export default class extends React.Component {
 						<div className="col col-md-7">
 							{set && 
 								<Api api={jaxObj[set][i]} category={set} i={i} key={`${set}${i}`} />
+							}
+
+							{!set &&
+								<ClayAlert displayType="info" spritemap={themeDisplay.getPathThemeImages() + '/lexicon/icons.svg'} title="Info:">
+									Please select an API to display more info.
+							 	</ClayAlert>
 							}
 						</div>
 					</div>
