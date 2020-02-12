@@ -1,22 +1,18 @@
 import React from 'react';
 
 import ClayAlert from '@clayui/alert';
-import ClayBadge from '@clayui/badge';
 
 import Api from './Api.es';
+import MethodBadge from './MethodBadge.es';
 
 export default class extends React.Component {
 	constructor(props) {
 		super(props);
 
-		console.log('props', props);
-
 		let i = null;
 		let set = null;
 
 		let hash = location.hash;
-
-		console.log('hash', hash);
 
 		if (hash) {
 			hash = hash.substring(1, hash.length);
@@ -35,8 +31,6 @@ export default class extends React.Component {
 	}
 
 	componentDidMount() {
-		console.log('componentDidMount', this.state);
-
 		const {i, set} = this.state;
 
 		if (set != null && i != null) {
@@ -102,8 +96,6 @@ export default class extends React.Component {
 	}
 
 	_handleAPIClick(set, i) {
-		console.log(set, i);
-
 		location.hash = `${set}+${i}`;
 
 		this.setState({
@@ -149,11 +141,7 @@ export default class extends React.Component {
 													id={key + '-' + i}
 													key={i}
 												>
-													<ClayBadge
-														className="flex-shrink-0"
-														displayType="success"
-														label={api.method}
-													/>
+													<MethodBadge className="flex-shrink-0" method={api.method} />
 
 													<button
 														className="btn btn-link p-0 text-truncate"

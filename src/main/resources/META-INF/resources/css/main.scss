@@ -3,4 +3,10 @@
 		word-break: break-word;
 		height: calc(100vh - 200px);
 	}
+
+	.api-item .btn-link {
+		&:focus {
+			box-shadow: none;
+		}
+	}
 }

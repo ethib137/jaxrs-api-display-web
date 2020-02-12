@@ -1,9 +1,9 @@
 import React from 'react';
 
-import ClayBadge from '@clayui/badge';
 import ClayForm, {ClayInput} from '@clayui/form';
 
 import JavascriptExample from './JavascriptExample.es';
+import MethodBadge from './MethodBadge.es';
 import Results from './Results.es';
 
 import lifeFetch from './fetch.es';
@@ -13,11 +13,6 @@ const TABS = [
 	'Javascript Example'
 ];
 
-
-// if (storageAvailable('localStorage')) {
-//   // Yippee! We can use localStorage awesomeness
-// }
-
 export default class extends React.Component {
 	constructor(props) {
 		super(props);
@@ -26,7 +21,7 @@ export default class extends React.Component {
 			formBlurs: {},
 			formErrors: {},
 			formValues: {},
-			inputs: props.api.url.match(/{[a-z|A-Z]+}/g),
+			inputs: props.api.url.match(/{[a-z|A-Z|\||:]+}/g),
 			method: props.api.method,
 			result: null,
 			tabIndex: 0,
@@ -43,22 +38,51 @@ export default class extends React.Component {
 		this.setState({formValues: this.getLocalStore(category, i)}, this._setURL);
 	}
 
+	storageAvailable(type) {
+	    var storage;
+	    try {
+	        storage = window[type];
+	        var x = '__storage_test__';
+	        storage.setItem(x, x);
+	        storage.removeItem(x);
+	        return true;
+	    }
+	    catch(e) {
+	        return e instanceof DOMException && (
+	            // everything except Firefox
+	            e.code === 22 ||
+	            // Firefox
+	            e.code === 1014 ||
+	            // test name field too, because code might not be present
+	            // everything except Firefox
+	            e.name === 'QuotaExceededError' ||
+	            // Firefox
+	            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+	            // acknowledge QuotaExceededError only if there's something already stored
+	            (storage && storage.length !== 0);
+	    }
+	}
+
 	generateKey(category, i) {
 		return `API_FORM_VALUES_${category}_${i}`;
 	}
 
 	setLocalStorage(formValues, category, i) {
-		localStorage.setItem(this.generateKey(category, i), JSON.stringify(formValues));
+		if (this.storageAvailable('localStorage')) {
+			localStorage.setItem(this.generateKey(category, i), JSON.stringify(formValues));
+		}
 	}
 
 	getLocalStore(category, i) {
-		const item = localStorage.getItem(this.generateKey(category, i));
+		if (this.storageAvailable('localStorage')) {
+			const item = localStorage.getItem(this.generateKey(category, i));
 
-		if (!item) {
-			return {};
+			if (!item) {
+				return {};
+			}
+
+			return JSON.parse(item);
 		}
-
-		return JSON.parse(item);
 	}
 
 	_handleInput(e) {
@@ -147,7 +171,8 @@ export default class extends React.Component {
 		return (
 			<div>
 				<div class="align-items-center d-flex mb-4">
-					<ClayBadge className="flex-shrink-0" displayType="success" label={api.method} />
+					<MethodBadge className="flex-shrink-0" method={api.method} />
+
 					<span> /o{api.urlPrefix}{api.url}</span>
 				</div>
 
