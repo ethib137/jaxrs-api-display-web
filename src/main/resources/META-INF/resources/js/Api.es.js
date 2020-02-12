@@ -13,6 +13,11 @@ const TABS = [
 	'Javascript Example'
 ];
 
+
+// if (storageAvailable('localStorage')) {
+//   // Yippee! We can use localStorage awesomeness
+// }
+
 export default class extends React.Component {
 	constructor(props) {
 		super(props);
@@ -28,6 +33,32 @@ export default class extends React.Component {
 			test: 'evan',
 			url: ''
 		}
+
+		this.setLocalStorage = this.setLocalStorage.bind(this);
+	}
+
+	componentDidMount() {
+		const {category, i} = this.props;
+
+		this.setState({formValues: this.getLocalStore(category, i)}, this._setURL);
+	}
+
+	generateKey(category, i) {
+		return `API_FORM_VALUES_${category}_${i}`;
+	}
+
+	setLocalStorage(formValues, category, i) {
+		localStorage.setItem(this.generateKey(category, i), JSON.stringify(formValues));
+	}
+
+	getLocalStore(category, i) {
+		const item = localStorage.getItem(this.generateKey(category, i));
+
+		if (!item) {
+			return {};
+		}
+
+		return JSON.parse(item);
 	}
 
 	_handleInput(e) {
@@ -39,23 +70,13 @@ export default class extends React.Component {
 			{formValues: Object.assign({}, state.formValues, {[name]: value})}
 		),
 		() => {
-			const {formValues, inputs} = this.state;
+			const {formValues} = this.state;
 
-			const {api} = this.props;
+			const {category, i} = this.props;
 
-			let url = `/o${api.urlPrefix}${api.url}`;
+			this.setLocalStorage(formValues, category, i);
 
-			inputs.forEach(input => {
-				url = url.replace(input, formValues[input]);
-			})
-
-			if (this.state.method == 'GET' && formValues.page && formValues.pageSize) {
-				url = `${url}?page=${formValues.page}&pageSize=${formValues.pageSize}`;
-			}
-
-			this.setState({
-				url
-			})
+			this._setURL();
 		});
 	}
 
@@ -88,6 +109,26 @@ export default class extends React.Component {
 			default:
 				return <Results data={this.state.results} />;
 		}
+	}
+
+	_setURL() {
+		const {formValues, inputs} = this.state;
+
+		const {api} = this.props;
+
+		let url = `/o${api.urlPrefix}${api.url}`;
+
+		inputs.forEach(input => {
+			url = url.replace(input, formValues[input]);
+		});
+
+		if (this.state.method == 'GET' && formValues.page && formValues.pageSize) {
+			url = `${url}?page=${formValues.page}&pageSize=${formValues.pageSize}`;
+		}
+
+		this.setState({
+			url
+		});
 	}
 
 	render() {

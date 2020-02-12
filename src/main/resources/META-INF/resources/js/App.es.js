@@ -169,7 +169,7 @@ export default class extends React.Component {
 
 						<div className="col col-md-7">
 							{set && 
-								<Api api={jaxObj[set][i]} key={`${set}${i}`} />
+								<Api api={jaxObj[set][i]} category={set} i={i} key={`${set}${i}`} />
 							}
 						</div>
 					</div>

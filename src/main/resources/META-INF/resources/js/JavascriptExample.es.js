@@ -12,11 +12,13 @@ export default class extends React.Component {
 			<div className="card overflow-auto vh-100">
 				<div className="p-3">
 					<pre style={{overflow: 'visible'}}>{
-`const request = {
-	method: '${method}'
+`const method = '${method}';
+
+const request = {
+	method: method
 };
 
-if ('${method}' === 'POST') {
+if (method === 'POST') {
 	const body = JSON.stringify(data);
 
 	request.body = body;
