@@ -25,7 +25,6 @@ export default class extends React.Component {
 			method: props.api.method,
 			result: null,
 			tabIndex: 0,
-			test: 'evan',
 			url: ''
 		}
 
@@ -33,9 +32,9 @@ export default class extends React.Component {
 	}
 
 	componentDidMount() {
-		const {category, i} = this.props;
+		const {apiKey, setKey} = this.props;
 
-		this.setState({formValues: this.getLocalStore(category, i)}, this._setURL);
+		this.setState({formValues: this.getLocalStore(setKey, apiKey)}, this._setURL);
 	}
 
 	storageAvailable(type) {
@@ -63,13 +62,13 @@ export default class extends React.Component {
 	    }
 	}
 
-	generateKey(category, i) {
-		return `API_FORM_VALUES_${category}_${i}`;
+	generateKey(category, apiKey) {
+		return `API_FORM_VALUES_${category}_${apiKey}`;
 	}
 
-	setLocalStorage(formValues, category, i) {
+	setLocalStorage(formValues, category, apiKey) {
 		if (this.storageAvailable('localStorage')) {
-			localStorage.setItem(this.generateKey(category, i), JSON.stringify(formValues));
+			localStorage.setItem(this.generateKey(category, apiKey), JSON.stringify(formValues));
 		}
 	}
 
@@ -96,9 +95,9 @@ export default class extends React.Component {
 		() => {
 			const {formValues} = this.state;
 
-			const {category, i} = this.props;
+			const {apiKey, setKey} = this.props;
 
-			this.setLocalStorage(formValues, category, i);
+			this.setLocalStorage(formValues, setKey, apiKey);
 
 			this._setURL();
 		});

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import ClayAlert from '@clayui/alert';
+import ClayForm, {ClayInput} from '@clayui/form';
 
 import Api from './Api.es';
 import MethodBadge from './MethodBadge.es';
@@ -9,8 +10,9 @@ export default class extends React.Component {
 	constructor(props) {
 		super(props);
 
-		let i = null;
-		let set = null;
+		let apiKey = null;
+		let setKey = null;
+		let filter = '';
 
 		let hash = location.hash;
 
@@ -19,22 +21,24 @@ export default class extends React.Component {
 
 			const hashArr = hash.split('+');
 
-			i = parseInt(hashArr[1]);
-			set = decodeURI(hashArr[0]);
+			apiKey = decodeURI(hashArr[1]);
+			setKey = decodeURI(hashArr[0]);
+			filter = decodeURI(hashArr[2]);
 		}
 
 		this.state = {
-			i,
+			apiKey,
+			filter,
 			jaxObj: this._parseAPIs(props.jaxrs),
-			set
+			setKey
 		}
 	}
 
 	componentDidMount() {
-		const {i, set} = this.state;
+		const {apiKey, setKey} = this.state;
 
-		if (set != null && i != null) {
-			const element = document.getElementById(`${set}-${i}`)
+		if (setKey != null && apiKey != null) {
+			const element = document.getElementById(`${setKey}-${apiKey}`)
 
 			if (element) {
 				element.scrollIntoView();
@@ -75,11 +79,16 @@ export default class extends React.Component {
 
 			arr = arr.filter((item, i) => (i % 2));
 
-			arr = arr.map(
+			const setObj = {};
+
+			arr.forEach(
 				item => {
 					const itemArr = item.split(/(POST|GET|PUT|PATCH|DELETE) (\S+) Consumes: (.+)(?= Produces) Produces: (.+)/);
 
-					return {
+					const method = itemArr[1];
+					const url = itemArr[2];
+
+					setObj[`${method}_${url}`] = {
 						consumes: itemArr[3],
 						method: itemArr[1],
 						produces: itemArr[4],
@@ -87,20 +96,58 @@ export default class extends React.Component {
 						urlPrefix
 					};
 				}
-			)
+			);
 
-			jaxObj[key] = arr;
+			// TODO: switch to map within a map.
+
+			jaxObj[key] = setObj;
 		});
 
 		return jaxObj;
 	}
 
-	_handleAPIClick(set, i) {
-		location.hash = `${set}+${i}`;
+	_getFilteredObj(jaxObj, filter) {
+		if (filter.trim().length == 0) {
+			return jaxObj;
+		}
+
+		const newObj = {};
+
+		// filter = filter.replace(/[/|:|{|}|.]/, x => '\\' + x);
+
+		console.log('filter', filter);
+
+		// const regex = new RegExp(`/${filter}/`, 'gi');
+
+		Object.keys(jaxObj).forEach(setKey => {
+			const newSetObj = {};
+
+			Object.keys(jaxObj[setKey]).forEach(apiKey => {
+				const api = jaxObj[setKey][apiKey];
+
+				const url = api.urlPrefix + api.url;
+
+				if (url.match(filter) || api.method.match(filter)) {
+					newSetObj[apiKey] = api;
+				}
+			});
+
+			if (Object.keys(newSetObj).length > 0) {
+				newObj[setKey] = newSetObj;
+			}
+		});
+
+		return newObj;
+	}
+
+	_handleAPIClick(setKey, apiKey) {
+		const {filter} = this.state;
+
+		location.hash = `${setKey}+${apiKey}+${filter}`;
 
 		this.setState({
-			i,
-			set
+			apiKey,
+			setKey
 		});
 	}
 
@@ -109,62 +156,90 @@ export default class extends React.Component {
 	}
 
 	render() {
-		const {i, jaxObj, set} = this.state;
+		const {
+			apiKey,
+			filter,
+			jaxObj,
+			setKey
+		} = this.state;
 
-		const currentIndex = i;
+		console.log('jaxObj', jaxObj, this.state);
 
-		console.log('jaxObj', jaxObj);
+		const filteredObj = this._getFilteredObj(jaxObj, filter);
+
+		console.log('filteredObj', filteredObj);
+
+		const apisExist = filteredObj && !Object.keys(filteredObj).length == 0;
 
 		return (
 			<div className="jaxrs-root">
 				<div className="container container-fluid">
 					<div className="row">
-						<div className="col col-md-5 api-list overflow-auto border p-3">
-							{jaxObj && Object.keys(jaxObj).map(key => (
-								<div key={key}>
-									<button
-										aria-controls={this._keyToId(key)}
-										aria-expanded={key == set ? 'true' : 'false'}
-										class="btn btn-block btn-secondary mb-3 text-left"
-										data-target={'#' + this._keyToId(key)}
-										data-toggle="collapse"
-										type="button"
-									>
-										{key}
-									</button>
+						<div className="col col-md-5 border p-0">
+							<ClayForm.Group className="px-3 pt-3">
+								<label htmlFor="filter">{'Filter'}</label>
+								<ClayInput
+									id="filter"
+									name="filter"
+									onInput={e => this.setState({filter: e.target.value})}
+									type="text"
+									value={filter}
+								/>
+							</ClayForm.Group>
 
-									<div class={'collapse' + (key == set ? ' show' : '')} id={this._keyToId(key)}>
-										<div class="card card-body">
-											{jaxObj[key].map((api, i) => (
-												<div
-													class={'align-items-center api-item d-flex p-1' + (key == set && i == currentIndex ? ' border border-primary rounded' : '')}
-													id={key + '-' + i}
-													key={i}
-												>
-													<MethodBadge className="flex-shrink-0" method={api.method} />
+							<div className="api-list overflow-auto border-top p-3">
+								{!apisExist &&
+									<ClayAlert displayType="info" spritemap={themeDisplay.getPathThemeImages() + '/lexicon/icons.svg'} title="Info:">
+										There are no api's that match your filter.
+									</ClayAlert>
+								}
 
-													<button
-														className="btn btn-link p-0 text-truncate"
-														onClick={() => this._handleAPIClick(key, i)}
-														title={`/o${api.urlPrefix}${api.url}`}
-													>/o{api.urlPrefix}{api.url}</button>
-												</div>
-											))}
+								{apisExist && Object.keys(filteredObj).map(curSetKey => (
+									<div key={curSetKey}>
+										<button
+											aria-controls={this._keyToId(curSetKey)}
+											aria-expanded={curSetKey == setKey ? 'true' : 'false'}
+											class="btn btn-block btn-secondary mb-3 text-left"
+											data-target={'#' + this._keyToId(curSetKey)}
+											data-toggle="collapse"
+											type="button"
+										>
+											{curSetKey}
+										</button>
+
+										<div class={'collapse' + (curSetKey == setKey ? ' show' : '')} id={this._keyToId(curSetKey)}>
+											<div class="card card-body">
+												{Object.keys(filteredObj[curSetKey]).map(curAPIKey => (
+													<div
+														class={'align-items-center api-item d-flex p-1' + (curSetKey == setKey && curAPIKey == apiKey ? ' border border-primary rounded' : '')}
+														id={curSetKey + '-' + curAPIKey}
+														key={curAPIKey}
+													>
+														<MethodBadge className="flex-shrink-0" method={filteredObj[curSetKey][curAPIKey].method} />
+
+														<button
+															className="btn btn-link p-0 text-truncate"
+															onClick={() => this._handleAPIClick(curSetKey, curAPIKey)}
+															title={`/o${filteredObj[curSetKey][curAPIKey].urlPrefix}${filteredObj[curSetKey][curAPIKey].url}`}
+														>/o{filteredObj[curSetKey][curAPIKey].urlPrefix}{filteredObj[curSetKey][curAPIKey].url}</button>
+													</div>
+												))}
+											</div>
 										</div>
 									</div>
-								</div>
-							))}		
+								))}		
+							</div>
 						</div>
 
 						<div className="col col-md-7">
-							{set && 
-								<Api api={jaxObj[set][i]} category={set} i={i} key={`${set}${i}`} />
+							{apisExist && setKey && 
+								<Api api={jaxObj[setKey][apiKey]} setKey={setKey} apiKey={apiKey} key={`${setKey}${apiKey}`} />
 							}
 
-							{!set &&
+							{!setKey &&
 								<ClayAlert displayType="info" spritemap={themeDisplay.getPathThemeImages() + '/lexicon/icons.svg'} title="Info:">
 									Please select an API to display more info.
-							 	</ClayAlert>
+								</ClayAlert>
 							}
 						</div>
 					</div>
