@@ -141,18 +141,30 @@ export default class extends React.Component {
 	}
 
 	_handleAPIClick(setKey, apiKey) {
-		const {filter} = this.state;
+		this.setState(
+			{
+				apiKey,
+				setKey
+			},
+			this._setHash
+		);
+	}
 
-		location.hash = `${setKey}+${apiKey}+${filter}`;
-
-		this.setState({
-			apiKey,
-			setKey
-		});
+	_handleFilterChange(e) {
+		this.setState(
+			{filter: e.target.value},
+			this._setHash
+		);
 	}
 
 	_keyToId(key) {
 		return key.substring(1, key.length);
+	}
+
+	_setHash() {
+		const {apiKey, filter, setKey} = this.state;
+
+		location.hash = `${setKey}+${apiKey}+${filter}`;
 	}
 
 	render() {
@@ -181,7 +193,7 @@ export default class extends React.Component {
 								<ClayInput
 									id="filter"
 									name="filter"
-									onInput={e => this.setState({filter: e.target.value})}
+									onInput={e => this._handleFilterChange(e)}
 									type="text"
 									value={filter}
 								/>
