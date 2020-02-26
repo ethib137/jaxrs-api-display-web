@@ -141,9 +141,11 @@ export default class extends React.Component {
 
 		let url = `/o${api.urlPrefix}${api.url}`;
 
-		inputs.forEach(input => {
-			url = url.replace(input, formValues[input]);
-		});
+		if (inputs) {
+			inputs.forEach(input => {
+				url = url.replace(input, formValues[input]);
+			});
+		}
 
 		if (this.state.method == 'GET' && formValues.page && formValues.pageSize) {
 			url = `${url}?page=${formValues.page}&pageSize=${formValues.pageSize}`;
